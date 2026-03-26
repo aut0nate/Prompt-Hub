@@ -3,13 +3,12 @@ version = 1
 name = "prompt-library"
 
 [setup]
-script = ""
+script = "npm install"
 
 [[actions]]
 name = "Start App"
 icon = "run"
 command = '''
-npm install
 npm run prisma:generate
 npm run db:push
 npm run db:seed
