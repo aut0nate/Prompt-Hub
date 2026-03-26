@@ -1,0 +1,52 @@
+{
+  "name": "prompt-hub",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A personal prompt library for saving and organising useful LLM prompts.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "next lint",
+    "prisma:generate": "prisma generate",
+    "db:push": "node scripts/db-push.mjs",
+    "db:seed": "node prisma/seed.mjs",
+    "hash-password": "node scripts/hash-password.mjs",
+    "test:e2e": "playwright test"
+  },
+  "keywords": [
+    "nextjs",
+    "prisma",
+    "prompt-library"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@prisma/client": "^6.19.0",
+    "bcryptjs": "^3.0.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "lucide-react": "^1.7.0",
+    "next": "^15.5.14",
+    "next-themes": "^0.4.6",
+    "prisma": "^6.12.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^25.5.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "autoprefixer": "^10.4.27",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^15.5.14",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.9.3"
+  }
+}
