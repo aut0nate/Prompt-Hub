@@ -277,19 +277,20 @@ export function LibraryShell({ initialData, initialListKey, isAdmin }: LibrarySh
           )}
         </section>
 
-        <section className="mb-8 flex flex-wrap gap-2">
+        <section data-testid="homepage-tags" className="mb-8 flex flex-wrap gap-2">
           {availableTags.map((tag) => {
             const isSelected = selectedTags.includes(tag);
 
             return (
               <button
                 key={tag}
+                data-testid="homepage-tag"
                 type="button"
                 onClick={() => toggleTag(tag)}
                 className={`rounded-full border px-4 py-2 text-sm transition ${
                   isSelected
                     ? "border-accent bg-accent text-white"
-                    : "border-line/70 bg-panel/60 text-foreground/75 hover:border-accent/60"
+                    : "border-line/70 bg-panel/60 text-foreground/75 hover:border-accent hover:bg-accent hover:text-white"
                 }`}
               >
                 {tag}

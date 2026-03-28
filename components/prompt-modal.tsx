@@ -119,7 +119,7 @@ export function PromptModal({ slug, onClose }: PromptModalProps) {
                     <Link
                       key={tag}
                       href={`/tags/${slugify(tag)}`}
-                      className="rounded-full border border-line/70 px-3 py-1 text-xs font-medium text-foreground/72 transition hover:border-accent/65 hover:bg-accent/10 hover:text-accent"
+                      className="rounded-full border border-line/70 px-3 py-1 text-xs font-medium text-foreground/72 transition hover:border-accent hover:bg-accent hover:text-white"
                     >
                       {tag}
                     </Link>

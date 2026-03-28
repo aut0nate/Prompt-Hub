@@ -5,6 +5,8 @@ import { promptQuerySchema } from "@/lib/validation";
 import type { PromptCardRecord, PromptDetailRecord, PromptListResult, PromptQueryState } from "@/lib/types";
 import { normaliseTagName, slugify } from "@/lib/utils";
 
+const HOMEPAGE_TAG_LIMIT = 20;
+
 const promptSelect = {
   id: true,
   slug: true,
@@ -163,8 +165,11 @@ export async function getPromptList(
     }),
     prisma.prompt.count({ where }),
     prisma.tag.findMany({
-      orderBy: { name: "asc" },
-      take: 40,
+      select: {
+        name: true,
+      },
+      orderBy: [{ prompts: { _count: "desc" } }, { name: "asc" }],
+      take: HOMEPAGE_TAG_LIMIT,
     }),
   ]);
 
