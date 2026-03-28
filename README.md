@@ -1,6 +1,7 @@
 # Prompt Hub
 
 Prompt Hub is a simple personal prompt library for saving, organising, searching, favouriting, and reusing LLM prompts.
+This application was created using OpenAI Codex.
 
 ## Stack
 
@@ -61,10 +62,43 @@ Prompt Hub is a simple personal prompt library for saving, organising, searching
 
 ## Docker
 
-Run Prompt Hub with Docker:
+Run Prompt Hub with Docker for local testing:
+
+```bash
+cp .env.example .env
+```
+
+Update `.env` with your values for:
+
+- `SESSION_SECRET`
+- `GITHUB_CLIENT_ID`
+- `GITHUB_CLIENT_SECRET`
+- `GITHUB_ALLOWED_USERNAME`
+
+If you are using GitHub OAuth locally, set the callback URL in your GitHub OAuth app to:
+
+```bash
+http://localhost:3000/api/auth/github/callback
+```
+
+Build and start the container:
 
 ```bash
 docker compose up --build
 ```
 
-The SQLite database is stored in a named Docker volume mounted at `/app/prisma`.
+Then open [http://localhost:3000](http://localhost:3000).
+
+Useful Docker commands:
+
+```bash
+docker compose up --build -d
+docker compose logs -f
+docker compose down
+```
+
+Notes:
+
+- The SQLite database is stored in a named Docker volume mounted at `/app/prisma`.
+- The Docker build uses `DATABASE_URL` from `.env` as a build argument so Next.js can prerender pages that query Prisma.
+- The runtime image installs OpenSSL for Prisma, carries production-only Node dependencies, and runs as a non-root user.

@@ -1,6 +1,9 @@
 services:
   prompt-hub:
-    build: .
+    build:
+      context: .
+      args:
+        DATABASE_URL: ${DATABASE_URL}
     ports:
       - "3000:3000"
     env_file:
