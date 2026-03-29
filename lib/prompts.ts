@@ -7,6 +7,7 @@ import type { PromptCardRecord, PromptDetailRecord, PromptListResult, PromptQuer
 import { normaliseTagName, slugify } from "@/lib/utils";
 
 const HOMEPAGE_TAG_LIMIT = 20;
+const HOMEPAGE_CATEGORY_LIMIT = 20;
 
 const promptSelect = {
   id: true,
@@ -74,6 +75,7 @@ function buildPromptWhere(query: PromptQueryState, isAdmin: boolean): Prisma.Pro
 
   return {
     ...(query.type !== "all" ? { type: query.type.toUpperCase() as PromptType } : {}),
+    ...(query.category ? { category: query.category } : {}),
     ...(query.favouritesOnly && isAdmin ? { isFavourite: true } : {}),
     ...(tagSlugs.length
       ? {
@@ -141,6 +143,7 @@ export function parsePromptQuery(input: Record<string, string | string[] | undef
     search: typeof input.search === "string" ? input.search : "",
     type: typeof input.type === "string" ? input.type : undefined,
     sort: typeof input.sort === "string" ? input.sort : undefined,
+    category: typeof input.category === "string" ? input.category : "",
     tags: typeof input.tags === "string" ? input.tags : "",
     favourites: typeof input.favourites === "string" ? input.favourites : undefined,
     limit: typeof input.limit === "string" ? input.limit : undefined,
@@ -151,6 +154,7 @@ export function parsePromptQuery(input: Record<string, string | string[] | undef
     search: parsed.search,
     type: parsed.type,
     sort: parsed.sort,
+    category: parsed.category,
     tags: parsed.tags,
     favouritesOnly: isAdmin ? parsed.favourites : false,
     limit: parsed.limit,
@@ -166,7 +170,7 @@ export async function getPromptList(
   const where = buildPromptWhere(query, isAdmin);
   const direction = query.sort === "oldest" ? "asc" : "desc";
 
-  const [prompts, totalCount, tags] = await Promise.all([
+  const [prompts, totalCount, tags, categories] = await Promise.all([
     prisma.prompt.findMany({
       where,
       select: promptSelect,
@@ -183,6 +187,16 @@ export async function getPromptList(
       orderBy: [{ prompts: { _count: "desc" } }, { name: "asc" }],
       take: HOMEPAGE_TAG_LIMIT,
     }),
+    prisma.prompt.findMany({
+      select: {
+        category: true,
+      },
+      distinct: ["category"],
+      orderBy: {
+        category: "asc",
+      },
+      take: HOMEPAGE_CATEGORY_LIMIT,
+    }),
   ]);
 
   const hasMore = prompts.length > query.limit;
@@ -193,6 +207,7 @@ export async function getPromptList(
     nextCursor: hasMore ? sliced[sliced.length - 1]?.id ?? null : null,
     totalCount,
     availableTags: tags.map((tag) => tag.name),
+    availableCategories: categories.map((entry) => entry.category),
   };
 }
 
