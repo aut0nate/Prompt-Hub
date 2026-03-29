@@ -8,6 +8,8 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    environment:
+      DATABASE_URL: file:/app/prisma/dev.db
     volumes:
       - prompt-hub-data:/app/prisma
     networks:

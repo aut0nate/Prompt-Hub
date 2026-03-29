@@ -8,7 +8,9 @@ import {
   isAllowedAttachmentExtension,
 } from "@/lib/attachment-config";
 import type { PromptAttachmentRecord } from "@/lib/types";
-const attachmentsRoot = path.join(process.cwd(), "storage", "prompt-attachments");
+const attachmentsRoot = process.env.ATTACHMENTS_DIR
+  ? path.resolve(process.env.ATTACHMENTS_DIR)
+  : path.join(process.cwd(), "prisma", "prompt-attachments");
 
 function normaliseBaseName(value: string) {
   return value.replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/^-+|-+$/g, "");

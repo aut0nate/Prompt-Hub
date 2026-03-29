@@ -18,7 +18,7 @@ RUN npm ci --omit=dev \
 
 FROM base AS builder
 WORKDIR /app
-ARG DATABASE_URL="file:./dev.db"
+ARG DATABASE_URL="file:/app/prisma/dev.db"
 ENV DATABASE_URL=${DATABASE_URL}
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
