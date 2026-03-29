@@ -5,6 +5,8 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { isAuthenticated } from "@/lib/auth";
 import { getPromptList } from "@/lib/prompts";
 
+export const dynamic = "force-dynamic";
+
 type HomePageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
