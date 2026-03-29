@@ -1,11 +1,12 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 
 import { formatFileSize, getAllowedAttachmentExtensions } from "@/lib/attachment-config";
-import type { PromptDetailRecord, PromptFormState } from "@/lib/types";
+import type { PromptDetailRecord, PromptEditorSuggestions, PromptFormState } from "@/lib/types";
+import { normaliseTagName, splitTags } from "@/lib/utils";
 
 const initialState: PromptFormState = {
   success: false,
@@ -16,6 +17,7 @@ type AdminPromptFormProps = {
   action: (state: PromptFormState, formData: FormData) => Promise<PromptFormState>;
   prompt?: PromptDetailRecord;
   submitLabel: string;
+  suggestions: PromptEditorSuggestions;
 };
 
 function SubmitButton({ label }: { label: string }) {
@@ -32,10 +34,13 @@ function SubmitButton({ label }: { label: string }) {
   );
 }
 
-export function AdminPromptForm({ action, prompt, submitLabel }: AdminPromptFormProps) {
+export function AdminPromptForm({ action, prompt, submitLabel, suggestions }: AdminPromptFormProps) {
   const router = useRouter();
   const [state, formAction] = useActionState(action, initialState);
   const acceptedAttachmentTypes = getAllowedAttachmentExtensions().map((extension) => `.${extension}`).join(",");
+  const [categoryValue, setCategoryValue] = useState(prompt?.category ?? "");
+  const [tagsValue, setTagsValue] = useState(prompt?.tags.join(", ") ?? "");
+  const selectedTags = splitTags(tagsValue);
 
   useEffect(() => {
     if (state.success && state.redirectTo) {
@@ -43,6 +48,15 @@ export function AdminPromptForm({ action, prompt, submitLabel }: AdminPromptForm
       router.refresh();
     }
   }, [router, state.redirectTo, state.success]);
+
+  function chooseCategory(category: string) {
+    setCategoryValue(category);
+  }
+
+  function addTag(tag: string) {
+    const nextTags = Array.from(new Set([...splitTags(tagsValue), normaliseTagName(tag)]));
+    setTagsValue(nextTags.join(", "));
+  }
 
   return (
     <form
@@ -105,10 +119,39 @@ export function AdminPromptForm({ action, prompt, submitLabel }: AdminPromptForm
           <input
             id="category"
             name="category"
-            defaultValue={prompt?.category ?? ""}
+            list="category-suggestions"
+            value={categoryValue}
+            onChange={(event) => setCategoryValue(event.target.value)}
             className="w-full rounded-2xl border border-line/70 bg-background/70 px-4 py-3 outline-none transition focus:border-accent/70"
             placeholder="Marketing"
           />
+          <datalist id="category-suggestions">
+            {suggestions.categories.map((category) => (
+              <option key={category} value={category} />
+            ))}
+          </datalist>
+          {suggestions.categories.length ? (
+            <div className="flex flex-wrap gap-2">
+              {suggestions.categories.map((category) => {
+                const isSelected = category === categoryValue.trim();
+
+                return (
+                  <button
+                    key={category}
+                    type="button"
+                    onClick={() => chooseCategory(category)}
+                    className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                      isSelected
+                        ? "border-accent bg-accent text-white"
+                        : "border-line/70 bg-background/60 text-foreground/70 hover:border-accent/60 hover:text-accent"
+                    }`}
+                  >
+                    {category}
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
           {state.errors?.category ? <p className="status-error-text text-sm">{state.errors.category}</p> : null}
         </div>
 
@@ -119,11 +162,34 @@ export function AdminPromptForm({ action, prompt, submitLabel }: AdminPromptForm
           <input
             id="tags"
             name="tags"
-            defaultValue={prompt?.tags.join(", ") ?? ""}
+            value={tagsValue}
+            onChange={(event) => setTagsValue(event.target.value)}
             className="w-full rounded-2xl border border-line/70 bg-background/70 px-4 py-3 outline-none transition focus:border-accent/70"
             placeholder="prompt-design, marketing, editing"
           />
           <p className="text-sm text-muted">Separate tags with commas.</p>
+          {suggestions.tags.length ? (
+            <div className="flex flex-wrap gap-2">
+              {suggestions.tags.map((tag) => {
+                const isSelected = selectedTags.includes(tag);
+
+                return (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => addTag(tag)}
+                    className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                      isSelected
+                        ? "border-accent bg-accent text-white"
+                        : "border-line/70 bg-background/60 text-foreground/70 hover:border-accent/60 hover:text-accent"
+                    }`}
+                  >
+                    {tag}
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
           {state.errors?.tags ? <p className="status-error-text text-sm">{state.errors.tags}</p> : null}
         </div>
 

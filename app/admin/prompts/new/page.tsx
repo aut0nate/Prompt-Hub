@@ -1,7 +1,10 @@
 import { createPromptAction } from "@/app/admin/actions";
 import { AdminPromptForm } from "@/components/admin-prompt-form";
+import { getPromptEditorSuggestions } from "@/lib/prompts";
 
-export default function NewPromptPage() {
+export default async function NewPromptPage() {
+  const suggestions = await getPromptEditorSuggestions();
+
   return (
     <section className="space-y-4">
       <div>
@@ -9,7 +12,7 @@ export default function NewPromptPage() {
         <h2 className="mt-3 text-3xl font-semibold">Add a new prompt to Prompt Hub</h2>
       </div>
 
-      <AdminPromptForm action={createPromptAction} submitLabel="Save prompt" />
+      <AdminPromptForm action={createPromptAction} submitLabel="Save prompt" suggestions={suggestions} />
     </section>
   );
 }

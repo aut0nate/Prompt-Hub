@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 
 import { updatePromptAction } from "@/app/admin/actions";
 import { AdminPromptForm } from "@/components/admin-prompt-form";
-import { getPromptById } from "@/lib/prompts";
+import { getPromptById, getPromptEditorSuggestions } from "@/lib/prompts";
 
 type EditPromptPageProps = {
   params: Promise<{ id: string }>;
@@ -10,7 +10,7 @@ type EditPromptPageProps = {
 
 export default async function EditPromptPage({ params }: EditPromptPageProps) {
   const { id } = await params;
-  const prompt = await getPromptById(id);
+  const [prompt, suggestions] = await Promise.all([getPromptById(id), getPromptEditorSuggestions()]);
 
   if (!prompt) {
     notFound();
@@ -23,7 +23,12 @@ export default async function EditPromptPage({ params }: EditPromptPageProps) {
         <h2 className="mt-3 text-3xl font-semibold">{prompt.title}</h2>
       </div>
 
-      <AdminPromptForm action={updatePromptAction.bind(null, id)} prompt={prompt} submitLabel="Update prompt" />
+      <AdminPromptForm
+        action={updatePromptAction.bind(null, id)}
+        prompt={prompt}
+        submitLabel="Update prompt"
+        suggestions={suggestions}
+      />
     </section>
   );
 }

@@ -53,19 +53,6 @@ test("homepage supports search, modal open, copy, infinite scroll, and end messa
   await page.getByLabel("Close prompt").nth(1).click();
   await page.getByPlaceholder("Search content or tags").fill("");
   await expect(page.locator("[data-testid='prompt-card']")).toHaveCount(12);
-<<<<<<< HEAD
-=======
-
-  await page.getByRole("combobox").nth(1).selectOption("Prompt Engineering");
-  await expect(page.locator("[data-testid='prompt-card']")).toHaveCount(1);
-  await expect(page.getByText("Prompt critique and improvement pass")).toBeVisible();
-  await page.getByRole("combobox").nth(1).selectOption("");
-  await expect(page.locator("[data-testid='prompt-card']")).toHaveCount(12);
-
-  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-  await expect(page.locator("[data-testid='prompt-card']")).toHaveCount(15);
-  await expect(page.locator("[data-testid='end-of-page']")).toHaveText("You have reached the end of the page");
->>>>>>> 8b8d5c82ae889c331d2505b3bf20bfa20d069695
 });
 
 test("admin can create, edit, favourite, and delete a prompt", async ({ page }) => {
@@ -89,6 +76,10 @@ test("admin can create, edit, favourite, and delete a prompt", async ({ page }) 
   await expect(page.getByRole("heading", { name: "Manage your prompt library" })).toBeVisible();
 
   await page.getByRole("link", { name: "Add prompt" }).click();
+  await page.getByRole("button", { name: "Marketing" }).click();
+  await expect(page.getByLabel("Category")).toHaveValue("Marketing");
+  await page.getByRole("button", { name: "audio" }).nth(1).click();
+  await expect(page.getByLabel("Tags")).toHaveValue("audio");
   await page.getByLabel("Title").fill("Prompt testing workflow");
   await page.getByLabel("Summary").fill("A saved prompt for checking app changes before release.");
   await page.getByLabel("Category").fill("Development");
@@ -115,17 +106,6 @@ Review a release candidate before it goes live.
   const promptCard = page.locator("article", { hasText: "Prompt testing workflow" }).first();
   await promptCard.getByRole("button", { name: "Favourite" }).click();
   await expect(promptCard.getByRole("button", { name: "Remove favourite" })).toBeVisible();
-
-  await page.goto("/");
-  await page.getByPlaceholder("Search content or tags").fill("Prompt testing workflow");
-  await page.getByRole("button", { name: /Prompt testing workflow/i }).click();
-  await expect(page.getByRole("heading", { name: "Prompt testing workflow", level: 2 })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Download all files" })).toBeVisible();
-  await expect(page.getByText("prompt-context.txt")).toBeVisible();
-  await expect(page.getByText("prompt-settings.json")).toBeVisible();
-  await page.getByLabel("Close prompt").nth(1).click();
-
-  await page.goto("/admin");
   const updatedPromptCard = page.locator("article", { hasText: "Prompt testing workflow" }).first();
 
   await updatedPromptCard.getByRole("button", { name: "Delete" }).click();

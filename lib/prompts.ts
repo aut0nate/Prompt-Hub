@@ -3,11 +3,18 @@ import { Prisma, PromptType } from "@prisma/client";
 import { mapAttachmentRecord } from "@/lib/attachments";
 import { prisma } from "@/lib/prisma";
 import { promptQuerySchema } from "@/lib/validation";
-import type { PromptCardRecord, PromptDetailRecord, PromptListResult, PromptQueryState } from "@/lib/types";
+import type {
+  PromptCardRecord,
+  PromptDetailRecord,
+  PromptEditorSuggestions,
+  PromptListResult,
+  PromptQueryState,
+} from "@/lib/types";
 import { normaliseTagName, slugify } from "@/lib/utils";
 
 const HOMEPAGE_TAG_LIMIT = 20;
 const HOMEPAGE_CATEGORY_LIMIT = 20;
+const EDITOR_SUGGESTION_LIMIT = 24;
 
 const promptSelect = {
   id: true,
@@ -238,4 +245,29 @@ export async function getTagBySlug(slug: string) {
       slug: true,
     },
   });
+}
+
+export async function getPromptEditorSuggestions(): Promise<PromptEditorSuggestions> {
+  const [categories, tags] = await Promise.all([
+    prisma.prompt.groupBy({
+      by: ["category"],
+      _count: {
+        category: true,
+      },
+      orderBy: [{ _count: { category: "desc" } }, { category: "asc" }],
+      take: EDITOR_SUGGESTION_LIMIT,
+    }),
+    prisma.tag.findMany({
+      select: {
+        name: true,
+      },
+      orderBy: [{ prompts: { _count: "desc" } }, { name: "asc" }],
+      take: EDITOR_SUGGESTION_LIMIT,
+    }),
+  ]);
+
+  return {
+    categories: categories.map((entry) => entry.category),
+    tags: tags.map((entry) => entry.name),
+  };
 }

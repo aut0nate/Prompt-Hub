@@ -56,3 +56,8 @@ export type PromptFormState = {
     Record<"title" | "summary" | "contentMarkdown" | "category" | "tags" | "type" | "attachments", string>
   >;
 };
+
+export type PromptEditorSuggestions = {
+  categories: string[];
+  tags: string[];
+};
