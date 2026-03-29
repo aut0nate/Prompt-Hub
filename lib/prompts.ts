@@ -16,6 +16,10 @@ const HOMEPAGE_TAG_LIMIT = 20;
 const HOMEPAGE_CATEGORY_LIMIT = 20;
 const EDITOR_SUGGESTION_LIMIT = 24;
 
+function cleanTagNames(values: string[]) {
+  return Array.from(new Set(values.map(normaliseTagName).filter(Boolean))).sort((left, right) => left.localeCompare(right));
+}
+
 const promptSelect = {
   id: true,
   slug: true,
@@ -62,7 +66,7 @@ function mapPrompt(
     isFavourite: isAdmin ? record.isFavourite : false,
     createdAt: record.createdAt.toISOString(),
     updatedAt: record.updatedAt.toISOString(),
-    tags: record.tags.map(({ tag }) => tag.name).sort((left, right) => left.localeCompare(right)),
+    tags: cleanTagNames(record.tags.map(({ tag }) => tag.name)),
   };
 }
 
@@ -191,6 +195,11 @@ export async function getPromptList(
       select: {
         name: true,
       },
+      where: {
+        name: {
+          not: "",
+        },
+      },
       orderBy: [{ prompts: { _count: "desc" } }, { name: "asc" }],
       take: HOMEPAGE_TAG_LIMIT,
     }),
@@ -213,7 +222,7 @@ export async function getPromptList(
     items: sliced.map((prompt) => mapPrompt(prompt, isAdmin)),
     nextCursor: hasMore ? sliced[sliced.length - 1]?.id ?? null : null,
     totalCount,
-    availableTags: tags.map((tag) => tag.name),
+    availableTags: cleanTagNames(tags.map((tag) => tag.name)),
     availableCategories: categories.map((entry) => entry.category),
   };
 }
@@ -261,6 +270,11 @@ export async function getPromptEditorSuggestions(): Promise<PromptEditorSuggesti
       select: {
         name: true,
       },
+      where: {
+        name: {
+          not: "",
+        },
+      },
       orderBy: [{ prompts: { _count: "desc" } }, { name: "asc" }],
       take: EDITOR_SUGGESTION_LIMIT,
     }),
@@ -268,6 +282,6 @@ export async function getPromptEditorSuggestions(): Promise<PromptEditorSuggesti
 
   return {
     categories: categories.map((entry) => entry.category),
-    tags: tags.map((entry) => entry.name),
+    tags: cleanTagNames(tags.map((entry) => entry.name)),
   };
 }
