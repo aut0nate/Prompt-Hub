@@ -95,7 +95,7 @@ export async function getGitHubUser(accessToken: string) {
     headers: {
       Accept: "application/vnd.github+json",
       Authorization: `Bearer ${accessToken}`,
-      "User-Agent": "Prompt-Hub",
+      "User-Agent": "Prompt-Vault",
     },
     cache: "no-store",
   });
