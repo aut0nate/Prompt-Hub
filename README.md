@@ -103,7 +103,7 @@ Notes:
 - The main database file lives at `storage/dev.db`.
 - Prompt attachments live under `storage/prompt-attachments/`.
 - Docker uses an absolute SQLite path inside the container, `/app/data/dev.db`, so build-time and runtime Prisma point at the same database file.
-- The runtime image installs OpenSSL for Prisma, carries production-only Node dependencies, and runs as a non-root user.
+- The container prepares the mounted `storage/` folder on startup, then runs the application as the non-root `nextjs` user.
 
 ## Backups and persistence
 

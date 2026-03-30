@@ -40,6 +40,5 @@ COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
 RUN mkdir -p /app/data && chown -R nextjs:nodejs /app/data
 RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack
-USER nextjs
 EXPOSE 3000
-CMD ["sh", "-c", "node scripts/db-push.mjs && exec node node_modules/next/dist/bin/next start -H 0.0.0.0 -p 3000"]
+CMD ["sh", "-c", "mkdir -p /app/data /app/data/prompt-attachments && chown -R nextjs:nodejs /app/data && exec su -s /bin/sh nextjs -c 'node scripts/db-push.mjs && exec node node_modules/next/dist/bin/next start -H 0.0.0.0 -p 3000'"]
