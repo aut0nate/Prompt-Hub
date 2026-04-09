@@ -9,6 +9,7 @@ export type PromptCardRecord = {
   slug: string;
   title: string;
   summary: string;
+  previewSnippet: string;
   type: "text" | "image" | "video" | "audio";
   category: string;
   isFavourite: boolean;

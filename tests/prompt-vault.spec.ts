@@ -42,6 +42,9 @@ test("homepage supports search, modal open, copy, infinite scroll, and end messa
   await page.getByPlaceholder("Search content or tags").fill("podcast");
   await expect(page.locator("[data-testid='prompt-card']")).toHaveCount(1);
   await expect(page.getByText("Podcast intro outline")).toBeVisible();
+  const podcastCardPreview = page.locator("[data-testid='prompt-card-preview']").first();
+  await expect(podcastCardPreview).toContainText("Create a podcast intro for the episode below.");
+  await expect(podcastCardPreview).not.toContainText("Draft a crisp opening for a podcast episode");
 
   await page.getByRole("button", { name: /Podcast intro outline/i }).click();
   await expect(page.getByRole("heading", { name: "Podcast intro outline", level: 2 })).toBeVisible();

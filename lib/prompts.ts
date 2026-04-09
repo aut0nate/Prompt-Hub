@@ -15,6 +15,7 @@ import { normaliseTagName, slugify } from "@/lib/utils";
 const HOMEPAGE_TAG_LIMIT = 20;
 const HOMEPAGE_CATEGORY_LIMIT = 20;
 const EDITOR_SUGGESTION_LIMIT = 24;
+const PROMPT_PREVIEW_LIMIT = 340;
 
 function cleanTagNames(values: string[]) {
   return Array.from(new Set(values.map(normaliseTagName).filter(Boolean))).sort((left, right) => left.localeCompare(right));
@@ -25,6 +26,7 @@ const promptSelect = {
   slug: true,
   title: true,
   summary: true,
+  contentMarkdown: true,
   category: true,
   type: true,
   isFavourite: true,
@@ -39,7 +41,6 @@ const promptSelect = {
 
 const promptDetailSelect = {
   ...promptSelect,
-  contentMarkdown: true,
   attachments: {
     select: {
       id: true,
@@ -61,6 +62,7 @@ function mapPrompt(
     slug: record.slug,
     title: record.title,
     summary: record.summary,
+    previewSnippet: buildPromptPreviewSnippet(record.contentMarkdown),
     category: record.category,
     type: record.type.toLowerCase() as PromptCardRecord["type"],
     isFavourite: isAdmin ? record.isFavourite : false,
@@ -79,6 +81,21 @@ function mapPromptDetail(
     contentMarkdown: record.contentMarkdown,
     attachments: record.attachments.map(mapAttachmentRecord),
   };
+}
+
+function buildPromptPreviewSnippet(contentMarkdown: string) {
+  const cleaned = contentMarkdown
+    .replace(/\r\n/g, "\n")
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/\{\{([^}]+)\}\}/g, "$1")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+
+  if (cleaned.length <= PROMPT_PREVIEW_LIMIT) {
+    return cleaned;
+  }
+
+  return `${cleaned.slice(0, PROMPT_PREVIEW_LIMIT).trimEnd()}…`;
 }
 
 function buildPromptWhere(query: PromptQueryState, isAdmin: boolean): Prisma.PromptWhereInput {

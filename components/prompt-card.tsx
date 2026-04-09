@@ -11,13 +11,7 @@ type PromptCardProps = {
   onOpen: (slug: string) => void;
 };
 
-function getPreviewText(prompt: PromptCardRecord) {
-  return `${prompt.summary}\n\nTags: ${prompt.tags.join(", ")}`;
-}
-
 export function PromptCard({ prompt, onOpen }: PromptCardProps) {
-  const previewText = getPreviewText(prompt);
-
   return (
     <button
       type="button"
@@ -48,8 +42,11 @@ export function PromptCard({ prompt, onOpen }: PromptCardProps) {
 
       <p className="mb-5 text-sm leading-7 text-foreground/72">{prompt.summary}</p>
 
-      <div className="mb-5 rounded-[1.4rem] border border-line/60 bg-black/10 p-4 font-mono text-sm leading-7 text-foreground/78 dark:bg-white/5">
-        <div className="line-clamp-6 whitespace-pre-wrap">{previewText}</div>
+      <div
+        data-testid="prompt-card-preview"
+        className="mb-5 rounded-[1.4rem] border border-line/60 bg-black/10 p-4 font-mono text-sm leading-7 text-foreground/78 dark:bg-white/5"
+      >
+        <div className="line-clamp-6 whitespace-pre-wrap">{prompt.previewSnippet}</div>
       </div>
 
       <div className="mt-auto space-y-4">
