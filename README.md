@@ -50,7 +50,7 @@ Environment notes:
   openssl rand -base64 32
   ```
 
-## Run locally
+## Run Locally
 
 1. Install dependencies:
 
@@ -92,14 +92,14 @@ Notes:
 - Docker uses an absolute SQLite path inside the container, `/app/data/dev.db`, so build-time and runtime Prisma point at the same database file.
 - The container prepares the mounted `storage/` folder on startup, then runs the application as the non-root `nextjs` user.
 
-## Admin area
+## Admin Area
 
 - Public visitors can browse prompts.
 - Only the allowed GitHub account can sign in and manage prompts.
 - The login page lives at `/login`.
 - The admin dashboard lives at `/admin`.
 
-## Backups and persistence
+## Backups and Persistence
 
 - The `storage/` folder is ignored by git and should be treated as local application data.
 - Rebuilding or recreating the container will not remove your prompts as long as `storage/` remains in place.
