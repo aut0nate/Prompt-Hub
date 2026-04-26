@@ -1,27 +1,20 @@
 services:
   prompt-vault:
-    container_name: prompt-vault
+    container_name: prompt-vault-local
     build:
       context: .
       args:
         DATABASE_URL: file:/app/data/dev.db
-    restart: unless-stopped
     env_file:
       - .env
     environment:
       DATABASE_URL: file:/app/data/dev.db
       ATTACHMENTS_DIR: /app/data/prompt-attachments
+    ports:
+      - "3000:3000"
     volumes:
       - ./storage:/app/data
-    networks:
-      - edge-net
     logging:
       options:
         max-size: "10m"
         max-file: "3"
-    labels:
-      com.centurylinklabs.watchtower.enable: "true"
-
-networks:
-  edge-net:
-    external: true

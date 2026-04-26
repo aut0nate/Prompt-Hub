@@ -32,8 +32,8 @@ The repository is intended for local development first, then Docker packaging an
 - `prisma/` - Prisma schema and database seed script.
 - `scripts/` - Utility scripts for local setup and maintenance.
 - `tests/` - Playwright end-to-end tests.
-- `Dockerfile` and `docker-compose.yml` - Container build and local Docker runtime.
-- `docker-compose.prod.yml` - VPS runtime that pulls the published Docker Hub image.
+- `Dockerfile` and `docker-compose.yml` - Container build and local Docker runtime for workstation testing.
+- `docker-compose.prod.yml` - VPS runtime template that pulls the published Docker Hub image.
 - `.github/workflows/ci.yml` - GitHub Actions workflow for tests, Docker builds, smoke testing, and image publishing.
 
 ## Common Commands
@@ -48,17 +48,16 @@ Use these commands from the repository root:
 - `npm run prisma:generate` - Regenerate the Prisma client.
 - `npm run db:push` - Push the Prisma schema to the local database.
 - `npm run db:seed` - Seed the local database.
-- `npm run hash-password -- "password"` - Generate a password hash for `ADMIN_PASSWORD_HASH`.
 - `npm run test:e2e` - Run Playwright end-to-end tests.
-- `docker compose up --build` - Build and run the app in Docker.
-- `docker compose -f docker-compose.prod.yml pull prompt-vault` - Pull the latest published production image on the VPS.
-- `docker compose -f docker-compose.prod.yml up -d` - Restart the published production image on the VPS.
+- `docker compose up --build` - Build and run the app locally in Docker on port 3000.
+- `docker compose pull prompt-vault` - Pull the latest published production image on the VPS.
+- `docker compose up -d` - Restart the published production image on the VPS.
 
 ## Local Development
 
 1. Install dependencies.
 2. Create `.env` from `.env.example`.
-3. Set `DATABASE_URL` and `ADMIN_PASSWORD_HASH`.
+3. Set `DATABASE_URL`, `APP_ORIGIN`, `SESSION_SECRET`, and the GitHub OAuth values.
 4. Run Prisma generate and database setup.
 5. Start the app with `npm run dev`.
 
@@ -92,10 +91,11 @@ The admin login lives at `/login` and the admin dashboard lives at `/admin`.
 
 - The project is already containerised.
 - `Dockerfile` builds the app for production.
-- `docker-compose.yml` builds locally and mounts `./storage` to `/app/data`.
+- `docker-compose.yml` builds locally, maps `localhost:3000` to the app, and mounts `./storage` to `/app/data`.
 - `docker-compose.prod.yml` pulls `aut0nate/prompt-vault:latest` and mounts `./storage` to `/app/data`.
 - Published images are tagged as `aut0nate/prompt-vault:latest` and `aut0nate/prompt-vault:<git-sha>`.
 - Keep SQLite data and prompt attachments outside the image in the persistent `storage/` mount.
+- The VPS should only need `docker-compose.yml`, `.env`, and `storage/`; do not build from source on the VPS.
 - If you change database paths or build steps, update both the Docker files and the README.
 
 ## CI/CD Notes

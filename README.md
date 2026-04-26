@@ -40,7 +40,7 @@ Environment notes:
 
 - Set `APP_ORIGIN` to the full public address where Prompt Vault will run.
 - For local development, use `http://localhost:3000`.
-- For a VPS or Docker deployment behind a domain, use your real public URL, for example `https://prompts.domain.com`.
+- For a production deployment behind a domain, use your real public URL, for example `https://prompts.domain.com`.
 - `SESSION_SECRET` is required for both local and Docker use. It signs login sessions.
 - Use a long random value for `SESSION_SECRET` and keep it stable for a given deployment.
 - Changing `SESSION_SECRET` will sign everyone out.
@@ -74,9 +74,11 @@ Environment notes:
 
 4. Open [http://localhost:3000](http://localhost:3000).
 
-## Run with Docker
+## Test Locally with Docker
 
-1. Build and start the container:
+Use Docker locally when you want to test the production container shape before pushing changes. Day-to-day development is usually faster with `npm run dev`.
+
+1. Build and start the local container:
 
    ```bash
    docker compose up --build
@@ -89,6 +91,7 @@ Notes:
 - The SQLite database and prompt attachments are stored in the local `storage/` folder and mounted into the container at `/app/data`.
 - The main database file lives at `storage/dev.db`.
 - Prompt attachments live under `storage/prompt-attachments/`.
+- Local Docker publishes the app on [http://localhost:3000](http://localhost:3000).
 - Docker uses an absolute SQLite path inside the container, `/app/data/dev.db`, so build-time and runtime Prisma point at the same database file.
 - The container prepares the mounted `storage/` folder on startup, then runs the application as the non-root `nextjs` user.
 
@@ -121,26 +124,34 @@ Add these repository secrets in GitHub before relying on publishing from `main`:
 
 Use a Docker Hub access token rather than your Docker Hub password. The image repository is public, but GitHub Actions still needs authenticated push access.
 
-## VPS Deployment
+## Production
 
-The VPS should pull the tested image from Docker Hub rather than building the app directly on the server.
+The production server should pull the tested image from Docker Hub rather than building the app directly from source.
 
-Use `docker-compose.prod.yml` on the VPS. It expects:
+Use `docker-compose.prod.yml` as the production template. On the production server, it can be copied to `docker-compose.yml` so the normal `docker compose ...` commands work without passing `-f`.
+
+It expects:
 
 - The public Docker Hub image `aut0nate/prompt-vault:latest`.
-- A local `.env` file on the VPS containing production secrets.
+- A local `.env` file on the production server containing production secrets.
 - A local `storage/` directory for the SQLite database and prompt attachments.
 - An existing external Docker network called `edge-net` for your reverse proxy.
 
-Example deployment flow on the VPS:
+Example deployment flow on the production server:
 
 ```bash
-docker compose -f docker-compose.prod.yml pull prompt-vault
-docker compose -f docker-compose.prod.yml up -d
-docker compose -f docker-compose.prod.yml logs -f prompt-vault
+docker compose pull prompt-vault
+docker compose up -d
+docker compose logs -f prompt-vault
 ```
 
-Because the image is public, the VPS does not need `docker login` to pull it. Keep production secrets only in the VPS `.env` file. Do not commit that file to GitHub.
+Because the image is public, the production server does not need `docker login` to pull it. Keep production secrets only in the production `.env` file. Do not commit that file to GitHub.
+
+Keep the production directory minimal:
+
+- `docker-compose.yml`
+- `.env`
+- `storage/`
 
 Before releases that touch database behaviour, back up the persistent storage directory:
 
@@ -154,17 +165,6 @@ After deployment, verify:
 - `/login` loads.
 - GitHub login works with the production callback URL.
 - Existing prompts and attachments are still present.
-
-## CI/CD Best Practices
-
-- Prefer pull requests so CI runs before code reaches `main`.
-- Enable branch protection for `main` after the workflow is passing reliably.
-- Keep secrets in GitHub Actions secrets or the VPS `.env`, never in code or Docker images.
-- Keep SQLite data and uploaded files in the persistent `storage/` mount, not inside the image.
-- Use immutable SHA image tags for rollback, even when deploying `latest`.
-- Keep the reverse proxy separate from the app container.
-- Review Dependabot pull requests regularly for npm and GitHub Actions updates.
-- Consider automatic deployment later, after the manual pull-and-restart process is comfortable.
 
 ## Admin Area
 
