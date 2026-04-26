@@ -1,7 +1,6 @@
 import path from "node:path";
 import { defineConfig, devices } from "@playwright/test";
 
-const testPasswordHash = "$2b$10$zkaffCsHVvYGR/rCaZDEo.f/yZ8/O1lCnsJYGwK6cfYTCZGNbgbya";
 const testDatabaseUrl = `file:${path.resolve("prisma/playwright.db")}`;
 
 export default defineConfig({
@@ -19,8 +18,6 @@ export default defineConfig({
     env: {
       DATABASE_URL: testDatabaseUrl,
       SESSION_SECRET: "playwright-session-secret",
-      ADMIN_USERNAME: "admin",
-      ADMIN_PASSWORD_HASH: testPasswordHash,
     },
   },
   projects: [
