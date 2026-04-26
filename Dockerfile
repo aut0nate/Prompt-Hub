@@ -7,12 +7,18 @@ RUN apt-get update -y \
 
 FROM base AS deps
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm config set fetch-retries 5 \
+  && npm config set fetch-retry-mintimeout 20000 \
+  && npm config set fetch-retry-maxtimeout 120000 \
+  && npm ci
 
 FROM base AS prod-deps
 COPY package.json package-lock.json ./
 COPY prisma ./prisma
-RUN npm ci --omit=dev \
+RUN npm config set fetch-retries 5 \
+  && npm config set fetch-retry-mintimeout 20000 \
+  && npm config set fetch-retry-maxtimeout 120000 \
+  && npm ci --omit=dev \
   && npx prisma generate \
   && npm cache clean --force
 
