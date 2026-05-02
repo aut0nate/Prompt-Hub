@@ -123,7 +123,7 @@ Use Docker locally when you want to test the application before deploying to you
 
 Notes:
 
-- The local `docker-compose.yml` file publishes port `3000` to `localhost`.
+- The local `docker-compose.yaml` file publishes port `3000` to `localhost`.
 - The SQLite database and prompt attachments are stored in the local `storage/` folder and mounted into the container at `/app/data`.
 - The main database file lives at `storage/dev.db`.
 - Prompt attachments live under `storage/prompt-attachments/`.
@@ -141,7 +141,7 @@ For most Docker-based deployments:
 
 1. Create a directory in your chosen location on your server, for example `/opt/stacks/prompts`.
 2. Change into this directory.
-3. Ensure the `docker-compose.prod.yml` file is saved in this directory.
+3. Ensure the `docker-compose.prod.yaml` file is saved in this directory.
 4. Create a `.env` file:
 
    ```bash
@@ -159,7 +159,7 @@ For most Docker-based deployments:
    mkdir -p storage
    ```
 
-6. Create the external Docker network or use an existing one. If you use an existing network, update the `docker-compose.prod.yml` file accordingly.
+6. Create the external Docker network or use an existing one. If you use an existing network, update the `docker-compose.prod.yaml` file accordingly.
 
    ```bash
    docker network create edge-net
@@ -168,14 +168,14 @@ For most Docker-based deployments:
 7. Start the public image:
 
    ```bash
-   docker compose -f docker-compose.prod.yml up -d
+   docker compose -f docker-compose.prod.yaml up -d
    ```
 
 8. Verify the public URL after deployment.
 
 Example production files:
 
-- `docker-compose.prod.yml`
+- `docker-compose.prod.yaml`
 - `.env`
 - `storage/`
 

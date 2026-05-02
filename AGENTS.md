@@ -32,10 +32,10 @@ The repository is intended for local development first, then Docker packaging an
 - `prisma/` - Prisma schema and database seed script.
 - `scripts/` - Utility scripts for local setup and maintenance.
 - `tests/` - Playwright end-to-end tests.
-- `Dockerfile` and `docker-compose.yml` - Container build and local Docker runtime for workstation testing.
-- `docker-compose.prod.yml` - Production runtime template that pulls the published GHCR image.
-- `.github/workflows/ci.yml` - GitHub Actions workflow for tests, Docker builds, and smoke testing.
-- `.github/workflows/cd.yml` - GitHub Actions workflow for GHCR image publishing and production deployment.
+- `Dockerfile` and `docker-compose.yaml` - Container build and local Docker runtime for workstation testing.
+- `docker-compose.prod.yaml` - Production runtime template that pulls the published GHCR image.
+- `.github/workflows/ci.yaml` - GitHub Actions workflow for tests, Docker builds, and smoke testing.
+- `.github/workflows/cd.yaml` - GitHub Actions workflow for GHCR image publishing and production deployment.
 
 ## Common Commands
 
@@ -92,11 +92,11 @@ The admin login lives at `/login` and the admin dashboard lives at `/admin`.
 
 - The project is already containerised.
 - `Dockerfile` builds the app for production.
-- `docker-compose.yml` builds locally, maps `localhost:3000` to the app, and mounts `./storage` to `/app/data`.
-- `docker-compose.prod.yml` pulls `ghcr.io/aut0nate/prompt-vault:${IMAGE_TAG:-latest}` and mounts `./storage` to `/app/data`.
+- `docker-compose.yaml` builds locally, maps `localhost:3000` to the app, and mounts `./storage` to `/app/data`.
+- `docker-compose.prod.yaml` pulls `ghcr.io/aut0nate/prompt-vault:${IMAGE_TAG:-latest}` and mounts `./storage` to `/app/data`.
 - Published images are tagged as `ghcr.io/aut0nate/prompt-vault:latest` and `ghcr.io/aut0nate/prompt-vault:<git-sha>`.
 - Keep SQLite data and prompt attachments outside the image in the persistent `storage/` mount.
-- The production server should only need `docker-compose.yml`, `.env`, and `storage/`; do not build from source on the production server.
+- The production server should only need `docker-compose.yaml`, `.env`, and `storage/`; do not build from source on the production server.
 - If you change database paths or build steps, update both the Docker files and the README.
 
 ## CI/CD Notes
