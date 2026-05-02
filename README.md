@@ -130,13 +130,13 @@ The workflow uses the built-in `GITHUB_TOKEN` to publish to GHCR. Add these repo
 
 After the first GHCR image is published, make the package public in GitHub if the production server should pull it without logging in.
 
-The deployment workflow currently expects the production Compose directory to be `/opt/stacks/prompts/Prompt-Vault`. Update `.github/workflows/cd.yml` if your production server uses a different path.
+The deployment workflow currently expects the production Compose directory to be `/opt/stacks/prompts`. Update `DEPLOY_PATH` in `.github/workflows/cd.yml` if your production server uses a different path.
 
 ## Production
 
 The production server should pull the tested image from GHCR rather than building the app directly from source.
 
-Use `docker-compose.prod.yml` as the production template. The CD workflow copies it to the production server as `docker-compose.yml` before each deployment.
+Use `docker-compose.prod.yml` as the production template. The CD workflow copies it to the production server as `docker-compose.yaml` before each deployment.
 
 It expects:
 
@@ -157,7 +157,7 @@ Because the image is public, the production server does not need to log in to GH
 
 Keep the production directory minimal:
 
-- `docker-compose.yml`
+- `docker-compose.yaml`
 - `.env`
 - `storage/`
 

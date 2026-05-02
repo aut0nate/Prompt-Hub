@@ -13,6 +13,7 @@ permissions:
 
 env:
   IMAGE_NAME: ghcr.io/aut0nate/prompt-vault
+  DEPLOY_PATH: /opt/stacks/prompts
 
 jobs:
   build-and-push:
@@ -66,7 +67,7 @@ jobs:
           scp -i ~/.ssh/deploy_key \
             -P "${{ secrets.VPS_PORT }}" \
             docker-compose.prod.yml \
-            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/stacks/prompts/Prompt-Vault/docker-compose.yml"
+            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${DEPLOY_PATH}/docker-compose.yaml"
 
       - name: Deploy container
         run: |
@@ -75,7 +76,7 @@ jobs:
             "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" << EOF
           set -e
 
-          cd /opt/stacks/prompts/Prompt-Vault
+          cd "${DEPLOY_PATH}"
 
           if [ ! -f .env ]; then
             touch .env
