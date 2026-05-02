@@ -97,9 +97,9 @@ Notes:
 
 ## CI/CD
 
-This repository uses GitHub Actions to test changes, build the production Docker image, and publish it to the public Docker Hub repository at `aut0nate/prompt-vault`.
+This repository uses GitHub Actions to test changes, build the production Docker image, publish it to GitHub Container Registry, and deploy it to the production server.
 
-The workflow runs on pull requests and branch pushes:
+The CI workflow runs on pull requests and pushes to `main`:
 
 1. Install dependencies with `npm ci`.
 2. Run linting.
@@ -108,31 +108,39 @@ The workflow runs on pull requests and branch pushes:
 5. Build the Docker image.
 6. Start the image and run a smoke test against the homepage.
 
-When a push lands on `main`, the workflow also publishes the image to Docker Hub as:
+When CI passes on `main`, the CD workflow publishes the image to GHCR as:
 
-- `aut0nate/prompt-vault:latest`
-- `aut0nate/prompt-vault:<git-commit-sha>`
+- `ghcr.io/aut0nate/prompt-vault:latest`
+- `ghcr.io/aut0nate/prompt-vault:<git-commit-sha>`
 
 The commit SHA tag is useful for rollbacks because it points at one exact build.
 
+If branch protection is enabled, require this CI status check before merging:
+
+- `Lint, test and build Docker image`
+
 ### GitHub Secrets
 
-Add these repository secrets in GitHub before relying on publishing from `main`:
+The workflow uses the built-in `GITHUB_TOKEN` to publish to GHCR. Add these repository secrets before relying on automatic production deployment:
 
-- `DOCKERHUB_USERNAME` - your Docker Hub username.
-- `DOCKERHUB_TOKEN` - a Docker Hub access token with permission to push to `aut0nate/prompt-vault`.
+- `VPS_HOST` - production server host or IP address.
+- `VPS_PORT` - SSH port.
+- `VPS_USER` - SSH user.
+- `VPS_SSH_KEY` - private SSH key for the deploy user.
 
-Use a Docker Hub access token rather than your Docker Hub password. The image repository is public, but GitHub Actions still needs authenticated push access.
+After the first GHCR image is published, make the package public in GitHub if the production server should pull it without logging in.
+
+The deployment workflow currently expects the production Compose directory to be `/opt/stacks/prompts/Prompt-Vault`. Update `.github/workflows/cd.yml` if your production server uses a different path.
 
 ## Production
 
-The production server should pull the tested image from Docker Hub rather than building the app directly from source.
+The production server should pull the tested image from GHCR rather than building the app directly from source.
 
-Use `docker-compose.prod.yml` as the production template. On the production server, it can be copied to `docker-compose.yml` so the normal `docker compose ...` commands work without passing `-f`.
+Use `docker-compose.prod.yml` as the production template. The CD workflow copies it to the production server as `docker-compose.yml` before each deployment.
 
 It expects:
 
-- The public Docker Hub image `aut0nate/prompt-vault:latest`.
+- The public GHCR image `ghcr.io/aut0nate/prompt-vault:${IMAGE_TAG:-latest}`.
 - A local `.env` file on the production server containing production secrets.
 - A local `storage/` directory for the SQLite database and prompt attachments.
 - An existing external Docker network called `edge-net` for your reverse proxy.
@@ -145,7 +153,7 @@ docker compose up -d
 docker compose logs -f prompt-vault
 ```
 
-Because the image is public, the production server does not need `docker login` to pull it. Keep production secrets only in the production `.env` file. Do not commit that file to GitHub.
+Because the image is public, the production server does not need to log in to GHCR to pull it. Keep production secrets only in the production `.env` file. Do not commit that file to GitHub.
 
 Keep the production directory minimal:
 

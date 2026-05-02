@@ -1,7 +1,7 @@
 services:
   prompt-vault:
     container_name: prompt-vault
-    image: aut0nate/prompt-vault:latest
+    image: ghcr.io/aut0nate/prompt-vault:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file:
       - .env

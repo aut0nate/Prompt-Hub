@@ -12,7 +12,7 @@ The application is built with:
 - Prisma with SQLite
 - Playwright for end-to-end tests
 
-The repository is intended for local development first, then Docker packaging and deployment on a VPS.
+The repository is intended for local development first, then Docker packaging and deployment on a production server.
 
 ## Working Rules
 
@@ -33,8 +33,9 @@ The repository is intended for local development first, then Docker packaging an
 - `scripts/` - Utility scripts for local setup and maintenance.
 - `tests/` - Playwright end-to-end tests.
 - `Dockerfile` and `docker-compose.yml` - Container build and local Docker runtime for workstation testing.
-- `docker-compose.prod.yml` - VPS runtime template that pulls the published Docker Hub image.
-- `.github/workflows/ci.yml` - GitHub Actions workflow for tests, Docker builds, smoke testing, and image publishing.
+- `docker-compose.prod.yml` - Production runtime template that pulls the published GHCR image.
+- `.github/workflows/ci.yml` - GitHub Actions workflow for tests, Docker builds, and smoke testing.
+- `.github/workflows/cd.yml` - GitHub Actions workflow for GHCR image publishing and production deployment.
 
 ## Common Commands
 
@@ -50,8 +51,8 @@ Use these commands from the repository root:
 - `npm run db:seed` - Seed the local database.
 - `npm run test:e2e` - Run Playwright end-to-end tests.
 - `docker compose up --build` - Build and run the app locally in Docker on port 3000.
-- `docker compose pull prompt-vault` - Pull the latest published production image on the VPS.
-- `docker compose up -d` - Restart the published production image on the VPS.
+- `docker compose pull prompt-vault` - Pull the latest published production image on the production server.
+- `docker compose up -d` - Restart the published production image on the production server.
 
 ## Local Development
 
@@ -82,8 +83,8 @@ The admin login lives at `/login` and the admin dashboard lives at `/admin`.
 
 - Treat `.env` as local-only.
 - Never commit secrets, password hashes, or private credentials.
-- Store Docker Hub credentials as GitHub repository secrets named `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN`.
-- Use Docker Hub access tokens rather than account passwords.
+- Store SSH deployment credentials as GitHub repository secrets named `VPS_HOST`, `VPS_PORT`, `VPS_USER`, and `VPS_SSH_KEY`.
+- Use the built-in `GITHUB_TOKEN` for GHCR publishing; do not add personal access tokens unless the built-in token is insufficient.
 - Review auth-related changes carefully, especially middleware, login actions, and admin routes.
 - Be careful when modifying API routes that expose prompt content or allow write operations.
 
@@ -92,17 +93,16 @@ The admin login lives at `/login` and the admin dashboard lives at `/admin`.
 - The project is already containerised.
 - `Dockerfile` builds the app for production.
 - `docker-compose.yml` builds locally, maps `localhost:3000` to the app, and mounts `./storage` to `/app/data`.
-- `docker-compose.prod.yml` pulls `aut0nate/prompt-vault:latest` and mounts `./storage` to `/app/data`.
-- Published images are tagged as `aut0nate/prompt-vault:latest` and `aut0nate/prompt-vault:<git-sha>`.
+- `docker-compose.prod.yml` pulls `ghcr.io/aut0nate/prompt-vault:${IMAGE_TAG:-latest}` and mounts `./storage` to `/app/data`.
+- Published images are tagged as `ghcr.io/aut0nate/prompt-vault:latest` and `ghcr.io/aut0nate/prompt-vault:<git-sha>`.
 - Keep SQLite data and prompt attachments outside the image in the persistent `storage/` mount.
-- The VPS should only need `docker-compose.yml`, `.env`, and `storage/`; do not build from source on the VPS.
+- The production server should only need `docker-compose.yml`, `.env`, and `storage/`; do not build from source on the production server.
 - If you change database paths or build steps, update both the Docker files and the README.
 
 ## CI/CD Notes
 
-- Pull requests and branch pushes run the GitHub Actions CI workflow.
-- Pushes to `main` publish the Docker image to Docker Hub after all checks pass.
-- Production deployment is currently manual from the VPS: pull the image, restart Compose, then inspect logs.
+- Pull requests and pushes to `main` run the GitHub Actions CI workflow.
+- Pushes to `main` run CI first; the CD workflow publishes the Docker image to GHCR and deploys only after CI succeeds on `main`.
 - Prefer pull requests and branch protection for `main` once the workflow is stable.
 - Keep the reverse proxy outside this app stack; this app should only expose the Next.js service to the existing Docker network.
 - Back up `storage/` before deployments that touch database behaviour.
