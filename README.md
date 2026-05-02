@@ -1,18 +1,42 @@
 # Prompt Vault
 
-Prompt Vault is a simple personal prompt library for saving, organising and reusing prompts.
+## Introduction
 
-![Login](./images/Prompt-Vault-Home.png)
+Prompt Vault is a personal web app for saving, organising, searching, and reusing LLM prompts in one place.
+
+It is for people who want an easier way to keep useful prompts organised without leaving them scattered across notes apps, chat histories, and text files. The app stores prompts in a local SQLite database, lets you browse and search them in a clearer interface, and gives one allowed GitHub account access to manage the library.
+
+![Screenshot or Preview](./images/Prompt-Vault-Home.png)
+
+## Features
+
+- Save prompts with a title, summary, category, and full Markdown content
+- Organise prompts with tags and prompt types
+- Search and filter the library by text, category, tag, type, and favourites
+- Mark important prompts as favourites for quicker access
+- Attach supporting files such as text, JSON, CSV, PDF, or YAML documents
+- Browse prompts publicly while limiting editing to one allowed GitHub account
 
 ## Stack
 
-- Next.js with the App Router
+- Node.js 20+
+- Next.js App Router
 - TypeScript
 - Tailwind CSS
-- Prisma with SQLite
-- Playwright for end-to-end tests
+- Prisma
+- SQLite
+- Playwright
+- Docker
 
-## Configuration
+## Requirements
+
+Before running this project, install:
+
+- Node.js 20 or newer
+- npm
+- Docker and Docker Compose, if you want to test or deploy the app with Docker
+
+## Configuration (.env)
 
 1. Create a `.env` file:
 
@@ -20,37 +44,48 @@ Prompt Vault is a simple personal prompt library for saving, organising and reus
    cp .env.example .env
    ```
 
-2. Create a [GitHub OAuth app](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app):
-
-   Use this callback URL for local development:
+2. Create a [GitHub OAuth app](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app) and use this callback URL:
 
    ```text
    http://localhost:3000/api/auth/github/callback
    ```
 
-3. Update `.env`:
+3. Update `.env` with the required values:
 
+   - `DATABASE_URL`
    - `APP_ORIGIN`
    - `SESSION_SECRET`
    - `GITHUB_CLIENT_ID`
    - `GITHUB_CLIENT_SECRET`
    - `GITHUB_ALLOWED_USERNAME`
 
+Example `.env`:
+
+```bash
+DATABASE_URL="file:./dev.db"
+APP_ORIGIN="http://localhost:3000"
+SESSION_SECRET="replace-with-a-long-random-string"
+GITHUB_CLIENT_ID="replace-with-your-github-oauth-app-client-id"
+GITHUB_CLIENT_SECRET="replace-with-your-github-oauth-app-client-secret"
+GITHUB_ALLOWED_USERNAME="your-github-username"
+```
+
 Environment notes:
 
-- Set `APP_ORIGIN` to the full public address where Prompt Vault will run.
-- For local development, use `http://localhost:3000`.
-- For a production deployment behind a domain, use your real public URL, for example `https://prompts.domain.com`.
-- `SESSION_SECRET` is required for both local and Docker use. It signs login sessions.
-- Use a long random value for `SESSION_SECRET` and keep it stable for a given deployment.
+- `DATABASE_URL` controls the SQLite database path for local development. The default `file:./dev.db` works for the local npm setup.
+- `APP_ORIGIN` should be the full public address where Prompt Vault runs. Use `http://localhost:3000` locally, and your real domain in production.
+- `SESSION_SECRET` is required for both local and Docker use. It signs login sessions, should be a long random value, and should stay stable for a given deployment.
 - Changing `SESSION_SECRET` will sign everyone out.
-- You can generate a suitable secret with:
+- `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` come from your GitHub OAuth app.
+- `GITHUB_ALLOWED_USERNAME` is the only GitHub username allowed to sign in and manage prompts.
 
-  ```bash
-  openssl rand -base64 32
-  ```
+You can generate a suitable `SESSION_SECRET` with:
 
-## Run Locally
+```bash
+openssl rand -base64 32
+```
+
+## Test Locally
 
 1. Install dependencies:
 
@@ -58,7 +93,7 @@ Environment notes:
    npm install
    ```
 
-2. Generate the Prisma client and create the database:
+2. Prepare the application:
 
    ```bash
    npm run prisma:generate
@@ -74,9 +109,9 @@ Environment notes:
 
 4. Open [http://localhost:3000](http://localhost:3000).
 
-## Test Locally with Docker
+## Test Locally Using Docker
 
-Use Docker locally when you want to test the production container shape before pushing changes. Day-to-day development is usually faster with `npm run dev`.
+Use Docker locally when you want to test the application before deploying to your server. Start by building the image:
 
 1. Build and start the local container:
 
@@ -84,88 +119,65 @@ Use Docker locally when you want to test the production container shape before p
    docker compose up --build
    ```
 
-2. Then open [http://localhost:3000](http://localhost:3000).
+2. Open [http://localhost:3000](http://localhost:3000).
 
 Notes:
 
+- The local `docker-compose.yml` file publishes port `3000` to `localhost`.
 - The SQLite database and prompt attachments are stored in the local `storage/` folder and mounted into the container at `/app/data`.
 - The main database file lives at `storage/dev.db`.
 - Prompt attachments live under `storage/prompt-attachments/`.
-- Local Docker publishes the app on [http://localhost:3000](http://localhost:3000).
-- Docker uses an absolute SQLite path inside the container, `/app/data/dev.db`, so build-time and runtime Prisma point at the same database file.
+- Docker uses the absolute SQLite path `/app/data/dev.db` inside the container so build-time and runtime Prisma point at the same database file.
 - The container prepares the mounted `storage/` folder on startup, then runs the application as the non-root `nextjs` user.
 
-## CI/CD
+## Server Deployment
 
-This repository uses GitHub Actions to test changes, build the production Docker image, publish it to GitHub Container Registry, and deploy it to the production server.
+You can run this on your own server by pulling the latest Docker image from `ghcr.io/aut0nate/prompt-vault:${IMAGE_TAG:-latest}`.
 
-The CI workflow runs on pull requests and pushes to `main`:
+Use the structure that fits your own environment and preferred deployment methods.
+For public-facing access, put the service behind HTTPS using a reverse proxy such as Nginx Proxy Manager, Caddy, Traefik, or any other preferred method.
 
-1. Install dependencies with `npm ci`.
-2. Run linting.
-3. Build the Next.js application.
-4. Run Playwright end-to-end tests.
-5. Build the Docker image.
-6. Start the image and run a smoke test against the homepage.
+For most Docker-based deployments:
 
-When CI passes on `main`, the CD workflow publishes the image to GHCR as:
+1. Create a directory in your chosen location on your server, for example `/opt/stacks/prompts`.
+2. Change into this directory.
+3. Ensure the `docker-compose.prod.yml` file is saved in this directory.
+4. Create a `.env` file:
 
-- `ghcr.io/aut0nate/prompt-vault:latest`
-- `ghcr.io/aut0nate/prompt-vault:<git-commit-sha>`
+   ```bash
+   APP_ORIGIN="https://prompts.example.com"
+   SESSION_SECRET="replace-with-a-long-random-string"
+   GITHUB_CLIENT_ID="replace-with-your-github-oauth-app-client-id"
+   GITHUB_CLIENT_SECRET="replace-with-your-github-oauth-app-client-secret"
+   GITHUB_ALLOWED_USERNAME="your-github-username"
+   IMAGE_TAG=latest
+   ```
 
-The commit SHA tag is useful for rollbacks because it points at one exact build.
+5. Create the persistent storage directory:
 
-If branch protection is enabled, require this CI status check before merging:
+   ```bash
+   mkdir -p storage
+   ```
 
-- `Lint, test and build Docker image`
+6. Create the external Docker network or use an existing one. If you use an existing network, update the `docker-compose.prod.yml` file accordingly.
 
-### GitHub Secrets
+   ```bash
+   docker network create edge-net
+   ```
 
-The workflow uses the built-in `GITHUB_TOKEN` to publish to GHCR. Add these repository secrets before relying on automatic production deployment:
+7. Start the public image:
 
-- `VPS_HOST` - production server host or IP address.
-- `VPS_PORT` - SSH port.
-- `VPS_USER` - SSH user.
-- `VPS_SSH_KEY` - private SSH key for the deploy user.
+   ```bash
+   docker compose -f docker-compose.prod.yml up -d
+   ```
 
-After the first GHCR image is published, make the package public in GitHub if the production server should pull it without logging in.
+8. Verify the public URL after deployment.
 
-The deployment workflow currently expects the production Compose directory to be `/opt/stacks/prompts`. Update `DEPLOY_PATH` in `.github/workflows/cd.yml` if your production server uses a different path.
+Example production files:
 
-## Production
-
-The production server should pull the tested image from GHCR rather than building the app directly from source.
-
-Use `docker-compose.prod.yml` as the production template. The CD workflow copies it to the production server as `docker-compose.yaml` before each deployment.
-
-It expects:
-
-- The public GHCR image `ghcr.io/aut0nate/prompt-vault:${IMAGE_TAG:-latest}`.
-- A local `.env` file on the production server containing production secrets.
-- A local `storage/` directory for the SQLite database and prompt attachments.
-- An existing external Docker network called `edge-net` for your reverse proxy.
-
-Example deployment flow on the production server:
-
-```bash
-docker compose pull prompt-vault
-docker compose up -d
-docker compose logs -f prompt-vault
-```
-
-Because the image is public, the production server does not need to log in to GHCR to pull it. Keep production secrets only in the production `.env` file. Do not commit that file to GitHub.
-
-Keep the production directory minimal:
-
-- `docker-compose.yaml`
+- `docker-compose.prod.yml`
 - `.env`
 - `storage/`
-
-Before releases that touch database behaviour, back up the persistent storage directory:
-
-```bash
-cp -R storage "storage-backup-$(date +%Y-%m-%d)"
-```
 
 After deployment, verify:
 
@@ -173,28 +185,6 @@ After deployment, verify:
 - `/login` loads.
 - GitHub login works with the production callback URL.
 - Existing prompts and attachments are still present.
-
-## Admin Area
-
-- Public visitors can browse prompts.
-- Only the allowed GitHub account can sign in and manage prompts.
-- The login page lives at `/login`.
-- The admin dashboard lives at `/admin`.
-
-## Backups and Persistence
-
-- The `storage/` folder is ignored by git and should be treated as local application data.
-- Rebuilding or recreating the container will not remove your prompts as long as `storage/` remains in place.
-- Do not run `docker compose down -v` if you want to keep your data.
-- Back up Prompt Vault by copying the `storage/` folder to another location.
-
-Example backup command:
-
-```bash
-cp -R storage "storage-backup-$(date +%Y-%m-%d)"
-```
-
-If you already have data in the old Docker volume, copy it into `storage/` before switching fully to the new setup.
 
 ## AI-Assisted Development
 
@@ -205,3 +195,7 @@ Prompt Vault was built with **OpenAI Codex using GPT-5.4**. This repository incl
 Contributions, ideas, and suggestions are welcome.
 
 If you have improvements, feature ideas, or bug fixes, feel free to open an issue or submit a pull request. All contributions are appreciated and help improve the project.
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE](./LICENSE) for details.
